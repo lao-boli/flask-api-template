@@ -12,6 +12,9 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI='mysql+pymysql://root:root@127.0.0.1:3306/pytest?charset=utf8',
+        SQLALCHEMY_POOL_RECYCLE=1800,
+        SQLALCHEMY_POOL_TIMEOUT=1500,
+        SQLALCHEMY_ENGINE_OPTIONS={'pool_pre_ping': True},
         SQLALCHEMY_ECHO=True
     )
 

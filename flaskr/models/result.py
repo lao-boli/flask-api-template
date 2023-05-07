@@ -1,5 +1,5 @@
 class Result:
-    def __init__(self, code, msg, data=None):
+    def __init__(self, code: int, msg: str, data=None):
         self.code = code
         self.msg = msg
         self.data = data
@@ -8,9 +8,9 @@ class Result:
         return {"code": self.code, "msg": self.msg, "data": self.data}
 
     @classmethod
-    def success(cls, data=None):
-        return Result(200, 'success', data)
+    def success(cls, code: int = 200, msg: str = 'success', data=None):
+        return Result(code, msg, data).to_dict()
 
     @classmethod
-    def fail(cls, data=None):
-        return Result(400, 'fail', data)
+    def fail(cls, code: int = 400, msg: str = 'fail', data=None):
+        return Result(code, msg, data).to_dict()

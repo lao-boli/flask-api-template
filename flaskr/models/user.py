@@ -41,7 +41,7 @@ class User(Base):
         return query
 
     @classmethod
-    def page(cls,args):
+    def page(cls, args):
         pageNum = int(args.get('pageNum'))
         pageSize = int(args.get('pageSize'))
         query = cls.init_query(args)
@@ -62,8 +62,8 @@ class User(Base):
         return user
 
     @classmethod
-    def update(cls, data, user_id):
-        user = cls.query.get(user_id)
+    def update(cls, data):
+        user = cls.query.get(data.get('userId'))
         if user is None:
             return None
         user.name = data['name']
