@@ -4,6 +4,7 @@ from flask import (
 
 from flaskr.models import User, base, Result, PageInfo
 from flaskr.utils import get_page_info
+from flaskr.exception import ResultError
 
 api = Blueprint('user', __name__, url_prefix='/user')
 db = base.db
@@ -43,5 +44,17 @@ def update_user():
 
 @api.route('/delete/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    User.delete(user_id)
+    user = User.delete(user_id)
     return jsonify(Result.success(msg='删除用户成功'))
+
+
+# not id
+
+@api.route('/get', methods=['GET'])
+def get_user_no_id():
+    return jsonify(Result.fail(msg='必须携带id'))
+
+
+@api.route('/delete', methods=['GET'])
+def delete_user_no_id():
+    return jsonify(Result.fail(msg='必须携带id'))

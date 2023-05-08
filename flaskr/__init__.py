@@ -1,8 +1,8 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
 from .models import *
-from sqlalchemy import select
+from .exception import ResultError
 
 
 def create_app(test_config=None):
@@ -15,19 +15,26 @@ def create_app(test_config=None):
         SQLALCHEMY_POOL_RECYCLE=1800,
         SQLALCHEMY_POOL_TIMEOUT=1500,
         SQLALCHEMY_ENGINE_OPTIONS={'pool_pre_ping': True},
-        SQLALCHEMY_ECHO=True
+        SQLALCHEMY_ECHO=True,
     )
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    # error handlers
+    @app.errorhandler(RuntimeError)
+    def handle_runtime_error(e):
+        app.logger.error('{}'.format(e))
+        return jsonify(Result.fail(msg='未知异常'))
 
+    @app.errorhandler(ResultError)
+    def handle_result_error(e: ResultError):
+        return jsonify(Result.fail_with_error(e))
+
+    # db
     from .models.base import db
     db.init_app(app)
     with app.app_context():
         db.create_all()
 
+    # router
     from .api.user import api
     app.register_blueprint(api)
     return app

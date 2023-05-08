@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from werkzeug.security import generate_password_hash
 from .base import Base, db
+from flaskr.exception import ResultError
 
 
 class User(Base):
@@ -42,10 +43,10 @@ class User(Base):
 
     @classmethod
     def page(cls, args):
-        pageNum = int(args.get('pageNum'))
-        pageSize = int(args.get('pageSize'))
+        page_num = int(args.get('pageNum', 1))
+        page_size = int(args.get('pageSize', 10))
         query = cls.init_query(args)
-        page = query.paginate(page=pageNum, per_page=pageSize)
+        page = query.paginate(page=page_num, per_page=page_size)
         return page
 
     @classmethod
@@ -65,7 +66,7 @@ class User(Base):
     def update(cls, data):
         user = cls.query.get(data.get('userId'))
         if user is None:
-            return None
+            raise ResultError(message='未找到用户')
         user.name = data['name']
         user.age = data.get('age')
         db.session.commit()
@@ -75,7 +76,7 @@ class User(Base):
     def delete(cls, user_id):
         user = User.query.get(user_id)
         if user is None:
-            return None
+            raise ResultError(message='未找到用户')
         db.session.delete(user)
         db.session.commit()
         return 'User deleted'

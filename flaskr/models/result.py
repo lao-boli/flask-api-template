@@ -1,3 +1,6 @@
+from flaskr.exception import ResultError
+
+
 class Result:
     def __init__(self, code: int, msg: str, data=None):
         self.code = code
@@ -14,3 +17,7 @@ class Result:
     @classmethod
     def fail(cls, code: int = 400, msg: str = 'fail', data=None):
         return Result(code, msg, data).to_dict()
+
+    @classmethod
+    def fail_with_error(cls, e: ResultError):
+        return Result(e.code, e.message, None).to_dict()
