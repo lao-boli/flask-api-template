@@ -37,4 +37,7 @@ def create_app(test_config=None):
     # router
     from .api.user import api
     app.register_blueprint(api)
+
+    from .api.auth import bp
+    app.register_blueprint(bp)
     return app

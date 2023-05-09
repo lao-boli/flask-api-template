@@ -8,6 +8,8 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
+    username = Column(String(50), nullable=False)
+    password = Column(String(50), nullable=False)
     age = Column(Integer)
 
     @classmethod
@@ -20,10 +22,13 @@ class User(Base):
     def init_query(cls, args):
         order_by = args.get('orderBy')
         name = args.get('name')
+        username = args.get('username')
         age = args.get('age')
         min_age = args.get('min_age')
         max_age = args.get('max_age')
         query = User.query
+        if username:
+            query = query.filter_by(username=username)
         if name:
             query = query.filter_by(name=name)
         if age:
@@ -50,14 +55,16 @@ class User(Base):
         return page
 
     @classmethod
-    def get(cls, user_id):
+    def get_by_id(cls, user_id):
         return cls.query.get(user_id)
 
     @classmethod
+    def get_by_username(cls, username):
+        return cls.query.filter_by(username=username).one()
+
+    @classmethod
     def add(cls, data):
-        name = data['name']
-        age = data.get('age')
-        user = User(name=name, age=age)
+        user = User(**data)
         db.session.add(user)
         db.session.commit()
         return user
