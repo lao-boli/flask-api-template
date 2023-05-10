@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 from .base import Base, db
 from flaskr.exception import ResultError
@@ -7,6 +9,7 @@ from flaskr.exception import ResultError
 class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
+    create_time = Column(DateTime)
     name = Column(String(50), nullable=False)
     username = Column(String(50), nullable=False)
     password = Column(String(50), nullable=False)
@@ -64,18 +67,26 @@ class User(Base):
 
     @classmethod
     def add(cls, data):
-        user = User(**data)
-        db.session.add(user)
-        db.session.commit()
+        filtered_data = cls.filter_dict(data)
+        user = User(**filtered_data)
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()  # 回滚事务
+            if 'Duplicate entry' in str(e):
+                raise ResultError(message='键冲突')
         return user
 
     @classmethod
-    def update(cls, data):
+    def update(cls, data: dict):
         user = cls.query.get(data.get('userId'))
         if user is None:
             raise ResultError(message='未找到用户')
-        user.name = data['name']
-        user.age = data.get('age')
+        filtered_data = cls.filter_dict(data, exclude=['user_id'])
+        # 将过滤后的数据赋值到对应的属性
+        for key, value in filtered_data.items():
+            setattr(user, key, value)
         db.session.commit()
         return user
 
