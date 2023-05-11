@@ -4,7 +4,6 @@ from flask import (
 
 from flaskr.api.auth import login_required
 from flaskr.models import User, base, Result
-from flaskr.utils import get_page_info
 
 api = Blueprint('user', __name__, url_prefix='/user')
 db = base.db
@@ -12,23 +11,22 @@ db = base.db
 
 @api.route('/list', methods=['GET'])
 @login_required
-def get_users():
-    users = User.list_users(request.args)
+def list_users():
+    users = User.list(request.args)
     return jsonify(Result.success(data=User.serialize_list(users)))
 
 
 @api.route('/page', methods=['GET'])
 @login_required
 def page_users():
-    pagination = User.page(request.args)
-    return jsonify(Result.success(get_page_info(pagination)))
+    page_info = User.page_to_dict(request.args)
+    return jsonify(Result.success(page_info))
 
 
 @api.route('/get/<int:user_id>', methods=['GET'])
 @login_required
 def get_user(user_id):
     user = User.get_by_id(user_id)
-    print(user.serialize())
     if user is None:
         return jsonify(Result.fail(msg='user not found'))
     return jsonify(user.serialize())
