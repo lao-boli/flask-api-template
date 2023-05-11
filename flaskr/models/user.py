@@ -14,10 +14,26 @@ class User(Base):
     username = Column(String(50), nullable=False)
     password = Column(String(50), nullable=False)
     age = Column(Integer)
+    orders = db.relationship('Order', backref='user', lazy='dynamic')
+    order_list = []
+
+    def serialize(self):
+        s = super().serialize()
+        s['order_list'] = self.serialize_list(self.order_list)
+        del s['orders']
+        return s
 
     @classmethod
     def get_by_username(cls, username):
         return cls.query.filter_by(username=username).one()
+
+    @classmethod
+    def list(cls, params):
+        users = super().list(params)
+        for user in users:
+            # 获取该用户的所有订单
+            user.order_list = user.orders.all()
+        return users
 
     @classmethod
     def update(cls, data: dict, key='userId', err_msg='未找到用户'):

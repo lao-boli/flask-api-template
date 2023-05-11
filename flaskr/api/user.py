@@ -61,7 +61,7 @@ def get_user_no_id():
     return jsonify(Result.fail(msg='必须携带id'))
 
 
-@api.route('/delete', methods=['GET'])
+@api.route('/delete', methods=['DELETE'])
 @login_required
 def delete_user_no_id():
     return jsonify(Result.fail(msg='必须携带id'))

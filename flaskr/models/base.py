@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, DataError, DatabaseError
 
 from .serializer import Serializer
 from flaskr.exception import ResultError
-
+import logging
+log = logging.getLogger('base')
 db = SQLAlchemy()
 
 
@@ -16,7 +17,7 @@ class Base(db.Model, Serializer):
         return db
 
     @classmethod
-    def init_query(cls, params):
+    def init_query(cls, params: dict) -> db.Query:
         query: db.Query = cls.query
 
         # 查询相等字段参数,e.g: username=username
@@ -89,6 +90,17 @@ class Base(db.Model, Serializer):
             db.session.rollback()
             if 'Duplicate entry' in str(e):
                 raise ResultError(message='键冲突')
+            elif 'foreign key' in str(e):
+                raise ResultError(message='外键所指的记录不存在')
+            else:
+                raise ResultError(message='database IntegrityError')
+        except DataError as e:
+            db.session.rollback()
+            log.warning('data format error')
+            raise ResultError(message='数据格式错误')
+        except DatabaseError as e:
+            db.session.rollback()
+            raise ResultError(message='数据库错误')
         return model
 
     @classmethod

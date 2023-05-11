@@ -40,6 +40,9 @@ def create_app(test_config=None):
     from .api.user import api
     app.register_blueprint(api)
 
+    from .api.order import api as order_api
+    app.register_blueprint(order_api)
+
     from .api.auth import bp
     app.register_blueprint(bp)
     return app
