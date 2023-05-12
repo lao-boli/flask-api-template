@@ -9,9 +9,9 @@ from flaskr.exception import ResultError
 class Order(Base):
     __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    product_name = db.Column(db.String(50))
-    product_price = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), comment='用户id')
+    product_name = db.Column(db.String(50), comment='产品名称')
+    product_price = db.Column(db.Float, comment='产品价格')
 
     @classmethod
     def get_by_username(cls, username):

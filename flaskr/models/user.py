@@ -8,12 +8,12 @@ from flaskr.exception import ResultError
 
 class User(Base):
     __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    create_time = Column(DateTime)
-    name = Column(String(50), nullable=False)
-    username = Column(String(50), nullable=False)
-    password = Column(String(50), nullable=False)
-    age = Column(Integer)
+    id = Column(Integer, primary_key=True, comment='主键')
+    create_time = Column(DateTime, comment='创建时间')
+    name = Column(String(50), nullable=False, comment='用户姓名')
+    username = Column(String(50), nullable=False, comment='账号名称')
+    password = Column(String(255), nullable=False, comment='账号密码')
+    age = Column(Integer, comment='用户年龄')
     orders = db.relationship('Order', backref='user', lazy='dynamic')
     order_list = []
 
