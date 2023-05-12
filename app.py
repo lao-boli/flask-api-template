@@ -1,8 +1,11 @@
 from flask import Flask
 
 from flaskr import create_app
+from flask_migrate import Migrate
+from flaskr.models.base import db
 
 app = create_app()
+migrate = Migrate(app=app, db=db)
 
 
 @app.route('/')
