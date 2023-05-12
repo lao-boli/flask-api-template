@@ -1,12 +1,14 @@
+import logging
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError, DataError, DatabaseError
 
-from .serializer import Serializer
 from flaskr.exception import ResultError
-import logging
-log = logging.getLogger('base')
+from .serializer import Serializer
+
 db = SQLAlchemy()
 
+logger = logging.getLogger(__name__)
 
 class Base(db.Model, Serializer):
     # 忽略基类的主键
@@ -92,14 +94,18 @@ class Base(db.Model, Serializer):
                 raise ResultError(message='键冲突')
             elif 'foreign key' in str(e):
                 raise ResultError(message='外键所指的记录不存在')
+            elif 'cannot be null' in str(e):
+                raise ResultError(message='非空字段为空')
             else:
-                raise ResultError(message='database IntegrityError')
+                logger.warning(e)
+                raise ResultError(message='Database IntegrityError')
         except DataError as e:
             db.session.rollback()
-            log.warning('data format error')
+            logger.warning('data format error')
             raise ResultError(message='数据格式错误')
         except DatabaseError as e:
             db.session.rollback()
+            logger.error(e)
             raise ResultError(message='数据库错误')
         return model
 

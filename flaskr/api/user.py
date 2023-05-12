@@ -4,6 +4,9 @@ from flask import (
 
 from flaskr.api.auth import login_required
 from flaskr.models import User, base, Result
+import logging
+
+logger = logging.getLogger(__name__)
 
 api = Blueprint('user', __name__, url_prefix='/user')
 db = base.db

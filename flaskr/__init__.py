@@ -1,14 +1,20 @@
 import os
+import sys
 
 from flask import Flask, jsonify
 from .models import *
 from .exception import ResultError
-from .utils import MyJSONEncoder
+from .utils import MyJSONEncoder,ColoredLevelFormatter
+import logging
+
 
 
 def create_app(test_config=None):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)
+
+    setup_logging(app)
+
     app.json_encoder = MyJSONEncoder
     app.debug = True
     app.config.from_mapping(
@@ -46,3 +52,15 @@ def create_app(test_config=None):
     from .api.auth import bp
     app.register_blueprint(bp)
     return app
+
+
+def setup_logging(app):
+    app.logger.setLevel(logging.DEBUG)
+    formatter = ColoredLevelFormatter(
+        "\033[38;2;187;187;187m%(asctime)s\033[0m "
+        "%(levelname)s "
+        "\033[36m%(name)s\033[0m"
+        "\033[38;2;187;187;187m  %(message)s\033[0m"
+    )
+    for handler in app.logger.handlers:
+        handler.setFormatter(formatter)
