@@ -101,7 +101,7 @@ class Base(db.Model, Serializer):
                 raise ResultError(message='Database IntegrityError')
         except DataError as e:
             db.session.rollback()
-            logger.warning('data format error')
+            logger.warning(e)
             raise ResultError(message='数据格式错误')
         except DatabaseError as e:
             db.session.rollback()

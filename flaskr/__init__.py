@@ -1,19 +1,38 @@
-import os
-import sys
+import asyncio
 
 from flask import Flask, jsonify
+
+from .MyWebSocket.Server import WebSocketServer
 from .models import *
 from .exception import ResultError
-from .utils import MyJSONEncoder,ColoredLevelFormatter
+from .utils import MyJSONEncoder, ColoredLevelFormatter
 import logging
 
+logger = logging.getLogger(__name__)
+
+server2 = WebSocketServer(9001)
+
+
+async def main():
+    await asyncio.gather(
+        server2.start_server(),
+    )
+
+
+def run_ws():
+    asyncio.run(main())
+
+
+from threading import Thread
 
 
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(__name__)
 
     setup_logging(app)
+
+    ws = Thread(target=run_ws)
+    ws.start()
 
     app.json_encoder = MyJSONEncoder
     app.debug = True
@@ -27,7 +46,7 @@ def create_app(test_config=None):
     )
 
     # error handlers
-    @app.errorhandler(RuntimeError)
+    @app.errorhandler(Exception)
     def handle_runtime_error(e):
         app.logger.error('{}'.format(e))
         return jsonify(Result.fail(msg='未知异常'))
@@ -60,7 +79,7 @@ def setup_logging(app):
         "\033[38;2;187;187;187m%(asctime)s\033[0m "
         "%(levelname)s "
         "\033[36m%(name)s\033[0m"
-        "\033[38;2;187;187;187m  %(message)s\033[0m"
+        "\033[38;2;187;187;187m: %(message)s\033[0m"
     )
     for handler in app.logger.handlers:
         handler.setFormatter(formatter)

@@ -1,4 +1,6 @@
 import asyncio
+from threading import Thread
+
 import websockets
 from websockets.legacy.server import WebSocketServerProtocol
 import logging
@@ -16,12 +18,22 @@ class WebSocketServer:
         self.connections = {}
 
     async def start_server(self):
-        self.server = await websockets.serve(self.handler, "", self.port)
-        print(f"WebSocket server started on port {self.port}")
+        try:
+            self.server = await websockets.serve(self.handler, "", self.port)
+        except OSError as e:
+            if e.args[0] == 10048:
+                logger.warning('port already in bind')
+            else:
+                logger.error(e)
+        logger.info(f"WebSocket server started on port {self.port}")
         await asyncio.Future()
 
     async def stop_server(self):
         if self.server:
+            for websocket in self.connections.values():
+                await websocket.close()
+
+            self.connections = {}
             self.server.close()
             await self.server.wait_closed()
 
@@ -40,7 +52,7 @@ class WebSocketServer:
         client_addr = self.convert_addr(websocket.remote_address)
         # 将当前连接存储到 connections 字典中
         self.connections[client_addr] = websocket
-        print(f"server: {self.port} connected with client: {client_addr}")
+        logger.info(f"server: {self.port} connected with client: {client_addr}")
 
         if self.on_open is not None:
             self.on_open(websocket)
@@ -48,7 +60,7 @@ class WebSocketServer:
         try:
             async for message in websocket:
                 # 处理收到的消息
-                print(f"server: {self.port} Received message from {client_addr}: {message}")
+                logger.info(f"server: {self.port} Received message from {client_addr}: {message}")
 
                 if self.on_message is not None:
                     self.on_message(websocket)
@@ -64,8 +76,8 @@ class WebSocketServer:
                     self.on_close(websocket)
 
                 del self.connections[client_addr]
-                print(f"server: {self.port} client disconnected : {client_addr}")
-                print(f"current conns count: {self.connections.keys().__len__()}")
+                logger.info(f"server: {self.port} client disconnected : {client_addr}\n"
+                            f"current conns count: {self.connections.keys().__len__()}")
 
     async def broadcast(self, message):
         if self.server and self.connections.get(self.port):
@@ -76,11 +88,15 @@ class WebSocketServer:
 
 async def main():
     server1 = WebSocketServer(8000, on_message=(lambda _: print('onmessage')))
-    server2 = WebSocketServer(9000)
+    server2 = WebSocketServer(9001)
     await asyncio.gather(
         server1.start_server(),
         server2.start_server(),
     )
+
+
+def run_ws():
+    asyncio.run(main())
 
 
 if __name__ == "__main__":
