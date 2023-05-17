@@ -6,6 +6,11 @@ from .MyWebSocket.Server import WebSocketServer
 from .models import *
 from .exception import ResultError
 from .utils import MyJSONEncoder, ColoredLevelFormatter
+
+from flask import Flask, jsonify
+from flask_cors import CORS
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,6 +33,8 @@ from threading import Thread
 
 def create_app(test_config=None):
     app = Flask(__name__)
+
+    CORS(app, resources=r'/*')
 
     setup_logging(app)
 
